@@ -1,4 +1,6 @@
 const express = require("express");
+const requireAuth = require("../middlewares/requireAuth");
+
 const {
     postArticle,
     getAllArticle,
@@ -17,20 +19,20 @@ const {
 const router = express.Router();
 
 // ARTICLE ROUTES
-router.post("/articles", postArticle);
-router.get("/articles", getAllArticle);
-router.get("/articles/search", searchArticle);
-router.get("/articles/:id", getArticleById);
-router.put("/articles/:id", updateArticleById);
-router.delete("/articles/:id", deleteArticleById);
+router.post("/articles", requireAuth,postArticle);
+router.get("/articles", requireAuth,getAllArticle);
+router.get("/articles/search", requireAuth,searchArticle);
+router.get("/articles/:id", requireAuth,getArticleById);
+router.put("/articles/:id",requireAuth, updateArticleById);
+router.delete("/articles/:id",requireAuth, deleteArticleById);
 
 // COMMENT ROUTES
-router.post("/articles/:id/comments", addComment);
-router.put("/articles/:id/comments/:commentId", editComment);
-router.delete("/articles/:id/comments/:commentId", deleteComment);
-router.post("/articles/:id/comments/:commentId/like", likeComment);
+router.post("/articles/:id/comments",requireAuth, addComment);
+router.put("/articles/:id/comments/:commentId",requireAuth, editComment);
+router.delete("/articles/:id/comments/:commentId", requireAuth, deleteComment);
+router.post("/articles/:id/comments/:commentId/like", requireAuth, likeComment);
 
 // REPLY ROUTE
-router.post("/articles/:id/comments/:commentId/replies", addReply);
+router.post("/articles/:id/comments/:commentId/replies", requireAuth, addReply);
 
 module.exports = router;

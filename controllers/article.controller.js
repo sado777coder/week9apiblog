@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const ArticleModel = require("../models/article.model");
+const userModel = require("../models/user.model");
 
 // CREATE ARTICLE
 const postArticle = async (req, res, next) => {
@@ -13,10 +14,15 @@ const postArticle = async (req, res, next) => {
     const { error, value } = articleSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ message: error.message });
-    }
+    };
 
     try {
-        const newArticle = await ArticleModel.create(value);
+        const newArticle = new ArticleModel({
+            title : req.body.title,
+            content : req.body.content,
+            author : req.user.userId,
+        });
+         await ArticleModel.create(value);
         return res.status(201).json({
             message: "Article created",
             data: newArticle,
@@ -33,7 +39,7 @@ const getAllArticle = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     try {
-        const articles = await ArticleModel.find({})
+        const articles = await ArticleModel.find({}).populate("author", "name _id email")
             .sort({ createdAt: -1 })
             .limit(Number(limit))
             .skip(Number(skip));
@@ -71,37 +77,40 @@ const getArticleById = async (req, res, next) => {
 
 // UPDATE ARTICLE
 const updateArticleById = async (req, res, next) => {
-    const articleSchema = Joi.object({
+    const { error, value } = Joi.object({
         title: Joi.string().min(5).optional(),
         content: Joi.string().min(20).optional(),
-        author: Joi.string().optional(),
         subheading: Joi.string().optional(),
-    });
+    }).validate(req.body);
 
-    const { error, value } = articleSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.message });
-    }
+    if (error) return res.status(400).json({ message: error.message });
 
     try {
-        const updatedArticle = await ArticleModel.findByIdAndUpdate(
+        const article = await ArticleModel.findById(req.params.id);
+
+        if (!article) {
+            return res.status(404).json({ message: "Article not found" });
+        }
+
+        // USER NOT OWNER — BLOCK EDIT
+        if (article.author.toString() !== req.user.userId) {
+            return res.status(403).json({
+                message: "Unauthorized. You can only edit your own article."
+            });
+        }
+
+        const updated = await ArticleModel.findByIdAndUpdate(
             req.params.id,
             value,
             { new: true, runValidators: true }
         );
 
-        if (!updatedArticle) {
-            return res.status(404).json({
-                message: "Article not found",
-            });
-        }
-
         return res.status(200).json({
             message: "Article updated",
-            data: updatedArticle,
+            data: updated,
         });
+
     } catch (err) {
-        console.error(err);
         next(err);
     }
 };
@@ -109,19 +118,24 @@ const updateArticleById = async (req, res, next) => {
 // DELETE ARTICLE
 const deleteArticleById = async (req, res, next) => {
     try {
-        const article = await ArticleModel.findByIdAndDelete(req.params.id);
+        const article = await ArticleModel.findById(req.params.id);
 
         if (!article) {
-            return res.status(404).json({
-                message: "Article not found",
+            return res.status(404).json({ message: "Article not found" });
+        }
+
+        // USER NOT OWNER — BLOCK DELETE
+        if (article.author.toString() !== req.user.userId) {
+            return res.status(403).json({
+                message: "Unauthorized. You can only delete your own article."
             });
         }
 
-        return res.status(200).json({
-            message: "Article deleted",
-        });
+        await article.deleteOne();
+
+        return res.status(200).json({ message: "Article deleted" });
+
     } catch (err) {
-        console.error(err);
         next(err);
     }
 };
@@ -150,10 +164,6 @@ const searchArticle = async (req, res, next) => {
         next(error);
     }
 };
-
-//
-// ------------------------- COMMENTS SYSTEM -------------------------
-//
 
 // ADD COMMENT
 const addComment = async (req, res, next) => {
@@ -265,8 +275,6 @@ module.exports = {
     updateArticleById,
     deleteArticleById,
     searchArticle,
-
-    // ⬇ NEW COMMENT FUNCTIONS
     addComment,
     editComment,
     deleteComment,

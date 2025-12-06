@@ -5,6 +5,7 @@ const connectDB = require("./database/connectDB.js");
 const requestLoger = require("./middlewares/loger.js");
 const errorHandler = require("./middlewares/errorHandler.js");
 const ArticleRoutes = require("./routes/article.route.js");
+const userRoute = require("./routes/user.route.js");
 
 const app = express();
 const PORT = process.env.PORT;
@@ -16,6 +17,7 @@ app.use(cors("*"));
 app.use(requestLoger);
 
 app.use("/api",ArticleRoutes);
+app.use("/api/user", userRoute)
 
 app.use(errorHandler);
 app.listen(PORT, () => {
