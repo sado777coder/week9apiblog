@@ -1,4 +1,6 @@
-Week9 Blog API
+URL = https://week9apiblog.onrender.com
+
+URLWeek9 Blog API
 
 A full-featured blog API built with Node.js, Express, and MongoDB.
 This API supports user authentication, article management, search, comments, reply threads, and likes on comments.
@@ -71,35 +73,57 @@ Article Routes (Protected):
 
 METHOD	ENDPOINT	DESCRIPTION:
 
-POST	/api/articles	Create new article
+Create new article
 
-GET	/api/articles	Get all articles
+POST	/api/articles	
 
-GET	/api/articles/search	Search articles
+Get all articles
 
-GET	/api/articles/:id	Get article by ID
+GET	/api/articles	
 
-PUT	/api/articles/:id	Update article
+Search articles
 
-DELETE	/api/articles/:id	Delete article
+GET	/api/articles/search	
+
+Get article by ID
+
+GET	/api/articles/:id	
+
+Update article
+
+PUT	/api/articles/:id	
+
+Delete article
+
+DELETE	/api/articles/:id	
 
 Comment Routes (Protected):
 
 METHOD	ENDPOINT	DESCRIPTION :
 
-POST	/api/articles/:id/comments	Add comment
+Add comment
 
-PUT	/api/articles/:id/comments/:commentId	Edit comment
+POST	/api/articles/:id/comments	
 
-DELETE	/api/articles/:id/comments/:commentId	Delete comment
+Edit comment
 
-POST	/api/articles/:id/comments/:commentId/like	Like a comment
+PUT	/api/articles/:id/comments/:commentId	
+
+Delete comment
+
+DELETE	/api/articles/:id/comments/:commentId	
+
+Like a comment
+
+POST	/api/articles/:id/comments/:commentId/like	
 
 Reply Routes (Protected) :
 
 METHOD	ENDPOINT	DESCRIPTION :
 
-POST	/api/articles/:id/comments/:commentId/replies	Add reply to a comment
+Add reply to a comment
+
+POST	/api/articles/:id/comments/:commentId/replies	
 
 Error Handling
 
