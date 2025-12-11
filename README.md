@@ -1,6 +1,5 @@
 URL = https://week9apiblog.onrender.com
 
-URLWeek9 Blog API
 
 A full-featured blog API built with Node.js, Express, and MongoDB.
 This API supports user authentication, article management, search, comments, reply threads, and likes on comments.
