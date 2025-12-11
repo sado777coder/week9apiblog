@@ -20,7 +20,7 @@ const postArticle = async (req, res, next) => {
         const newArticle = new ArticleModel({
             title : req.body.title,
             content : req.body.content,
-            author : req.user.userId,
+            author : req.user._id,
         });
          await ArticleModel.create(value);
         return res.status(201).json({
