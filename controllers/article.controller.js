@@ -7,7 +7,6 @@ const postArticle = async (req, res, next) => {
     const articleSchema = Joi.object({
         title: Joi.string().min(5).required(),
         content: Joi.string().min(20).required(),
-        author: Joi.string().optional().default("Guest"),
         subheading: Joi.string().optional(),
     });
 
@@ -17,16 +16,18 @@ const postArticle = async (req, res, next) => {
     };
 
     try {
-        const newArticle = new ArticleModel({
-            title : req.body.title,
-            content : req.body.content,
-            author : req.user._id,
+        const newArticle = await ArticleModel.create({
+            title: value.title,
+            content: value.content,
+            subheading: value.subheading,
+            author: req.user.userId,   // IMPORTANT
         });
-         await ArticleModel.create(value);
+
         return res.status(201).json({
             message: "Article created",
             data: newArticle,
         });
+
     } catch (err) {
         console.error(err);
         next(err);
