@@ -20,7 +20,7 @@ const postArticle = async (req, res, next) => {
             title: value.title,
             content: value.content,
             subheading: value.subheading,
-            author: req.user.userId,   // IMPORTANT
+            author: req.user._id,   // IMPORTANT
         });
 
         return res.status(201).json({
