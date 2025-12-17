@@ -63,7 +63,7 @@
  *           format: date-time
  */
 
-/* ================= ARTICLES ROUTES DOCS ================= */
+// ARTICLES ROUTES DOCS 
 
 /**
  * @swagger
@@ -175,7 +175,7 @@
  *         description: Article deleted
  */
 
-/* ================= COMMENTS ROUTES DOCS ================= */
+// COMMENTS ROUTES DOCS 
 
 /**
  * @swagger
@@ -260,7 +260,7 @@
  *         description: Comment liked
  */
 
-/* ================= REPLIES ROUTES DOCS ================= */
+// REPLIES ROUTES DOCS 
 
 /**
  * @swagger

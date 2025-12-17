@@ -1,0 +1,3 @@
+PORT=9000
+MONGOOSE_URL=yourDatabaseUrlHere
+JWT_SECRET=yourSecretKeyHere
