@@ -2,8 +2,7 @@ require("dotenv").config();
 const redisClient = require("../config/redis");
 const userModel = require("../models/user.model");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { hashPassowrd } = require("../utility/bcrypt");
+const { hashPassowrd, generateToken } = require("../utility/bcrypt");
 
 // REGISTER USER
 const registerUser = async (req, res, next) => {
@@ -48,11 +47,8 @@ const loginUser = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, username: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Generate token from utility
+    const token = generateToken(user);
 
     return res.status(200).json({
       message: "logged in",

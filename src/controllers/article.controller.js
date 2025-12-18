@@ -1,5 +1,4 @@
 const ArticleModel = require("../models/article.model");
-const redisClient = require("../config/redis");
 const {
   createArticleSchema,
   updateArticleSchema,
@@ -7,13 +6,14 @@ const {
   editCommentSchema,
 } = require("../validators/post.validation");
 
-// REDIS HELPERS
-const clearArticlesCache = async () => {
-  const keys = await redisClient.keys("articles:*");
-  if (keys.length > 0) {
-    await redisClient.del(keys);
-  }
-};
+const {
+  clearArticlesCache,
+  getArticlesCache,
+  setArticlesCache,
+  getArticleCache,
+  setArticleCache,
+  deleteArticleCache,
+} = require("../utility/article.redis");
 
 // CREATE ARTICLE
 const postArticle = async (req, res, next) => {
@@ -46,11 +46,11 @@ const getAllArticle = async (req, res, next) => {
   const cacheKey = `articles:page=${page}:limit=${limit}`;
 
   try {
-    const cachedArticles = await redisClient.get(cacheKey);
+    const cachedArticles = await getArticlesCache(cacheKey);
     if (cachedArticles) {
       return res.status(200).json({
         message: "Articles fetched (cache)",
-        data: JSON.parse(cachedArticles),
+        data: cachedArticles,
       });
     }
 
@@ -60,7 +60,7 @@ const getAllArticle = async (req, res, next) => {
       .limit(Number(limit))
       .skip(Number(skip));
 
-    await redisClient.setEx(cacheKey, 60, JSON.stringify(articles));
+    await setArticlesCache(cacheKey, articles);
 
     return res.status(200).json({
       message: "Articles fetched (database)",
@@ -73,14 +73,12 @@ const getAllArticle = async (req, res, next) => {
 
 // GET SINGLE ARTICLE (CACHED)
 const getArticleById = async (req, res, next) => {
-  const cacheKey = `article:${req.params.id}`;
-
   try {
-    const cachedArticle = await redisClient.get(cacheKey);
+    const cachedArticle = await getArticleCache(req.params.id);
     if (cachedArticle) {
       return res.status(200).json({
         message: "Article found (cache)",
-        data: JSON.parse(cachedArticle),
+        data: cachedArticle,
       });
     }
 
@@ -91,7 +89,7 @@ const getArticleById = async (req, res, next) => {
       });
     }
 
-    await redisClient.setEx(cacheKey, 60, JSON.stringify(article));
+    await setArticleCache(req.params.id, article);
 
     return res.status(200).json({
       message: "Article found (database)",
@@ -125,7 +123,7 @@ const updateArticleById = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
     await clearArticlesCache();
 
     return res.status(200).json({
@@ -151,7 +149,7 @@ const deleteArticleById = async (req, res, next) => {
 
     await article.deleteOne();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
     await clearArticlesCache();
 
     return res.status(200).json({ message: "Article deleted" });
@@ -197,7 +195,7 @@ const addComment = async (req, res, next) => {
     article.comments.push(value);
     await article.save();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
 
     res.status(201).json({ message: "Comment added", data: article });
   } catch (err) {
@@ -222,7 +220,7 @@ const editComment = async (req, res, next) => {
     comment.message = value.message;
     await article.save();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Comment updated", data: article });
   } catch (err) {
@@ -242,7 +240,7 @@ const deleteComment = async (req, res, next) => {
     comment.deleteOne();
     await article.save();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Comment deleted" });
   } catch (err) {
@@ -262,7 +260,7 @@ const likeComment = async (req, res, next) => {
     comment.likes += 1;
     await article.save();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
 
     res
       .status(200)
@@ -289,7 +287,7 @@ const addReply = async (req, res, next) => {
     comment.replies.push(value);
     await article.save();
 
-    await redisClient.del(`article:${req.params.id}`);
+    await deleteArticleCache(req.params.id);
 
     res.status(201).json({ message: "Reply added", data: article });
   } catch (err) {
