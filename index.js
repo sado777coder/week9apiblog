@@ -1,14 +1,23 @@
 require("dotenv").config();
-const connectDB = require("./src/database/connectDB");
-const config = require("./src/config/config");
 require("./src/config/redis");
 
+const connectDB = require("./src/database/connectDB");
 const app = require("./src/app");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
+// async startup function
+const startServer = async () => {
+  try {
+    await connectDB();
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+  }
 
-app.listen(config.PORT, async () => {
-  await connectDB();
-    console.log(`sever is listening on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+};
+
+startServer();
