@@ -4,7 +4,9 @@ const ArticleModel = require("../models/article.model");
 const findArticleOrThrow = async (articleId) => {
   const article = await ArticleModel.findById(articleId);
   if (!article) {
-    throw { status: 404, message: "Article not found" };
+    const err = new Error("Article not found");
+    err.status = 404;
+    throw err;
   }
   return article;
 };
@@ -13,7 +15,9 @@ const findArticleOrThrow = async (articleId) => {
 const findCommentOrThrow = (article, commentId) => {
   const comment = article.comments.id(commentId);
   if (!comment) {
-    throw { status: 404, message: "Comment not found" };
+    const err = new Error("Comment not found");
+    err.status = 404;
+    throw err;
   }
   return comment;
 };
@@ -22,7 +26,9 @@ const findCommentOrThrow = (article, commentId) => {
 const findReplyOrThrow = (comment, replyId) => {
   const reply = comment.replies.id(replyId);
   if (!reply) {
-    throw { status: 404, message: "Reply not found" };
+    const err = new Error("Reply not found");
+    err.status = 404;
+    throw err;
   }
   return reply;
 };
@@ -30,7 +36,9 @@ const findReplyOrThrow = (comment, replyId) => {
 // Ownership check
 const checkOwnership = (resourceUserId, loggedInUserId, message) => {
   if (resourceUserId.toString() !== loggedInUserId.toString()) {
-    throw { status: 403, message };
+    const err = new Error(message);
+    err.status = 403;
+    throw err;
   }
 };
 
