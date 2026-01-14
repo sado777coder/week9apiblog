@@ -1,14 +1,27 @@
 const rateLimit = require("express-rate-limit");
-const RedisStore = require("rate-limit-redis").default;
-const redisClient = require("../config/redis");
+const RedisStore = require("rate-limit-redis").default; // <-- fix here
+const Redis = require("ioredis");
 
-const rateLimiter = rateLimit({
-  store: new RedisStore({
-    sendCommand: (...args) => redisClient.sendCommand(args),
-  }),
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests, try again later",
+// Create Redis client (Upstash supports rediss://)
+const redisClient = new Redis(process.env.REDIS_URL, {
+  tls: {},
+  maxRetriesPerRequest: 1,
+  connectTimeout: 10000,
 });
 
-module.exports = rateLimiter;
+// Always non-blocking
+redisClient.on("connect", () => console.log("Redis connected"));
+redisClient.on("error", (err) => console.error("Redis Error:", err.message));
+
+// Rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.call(...args), // ioredis compatible
+  }),
+});
+
+module.exports = limiter;
