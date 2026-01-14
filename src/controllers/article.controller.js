@@ -15,6 +15,13 @@ const {
   deleteArticleCache,
 } = require("../utility/article.redis");
 
+const {
+  findArticleOrThrow,
+  findCommentOrThrow,
+  findReplyOrThrow,
+  checkOwnership,
+} = require("../helpers/article.helpers");
+
 // CREATE ARTICLE
 const postArticle = async (req, res, next) => {
   const { error, value } = createArticleSchema.validate(req.body);
@@ -111,7 +118,7 @@ const updateArticleById = async (req, res, next) => {
     const article = await ArticleModel.findById(req.params.id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    if (article.author.toString() !== req.user.userId) {
+    if (article.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         message: "Unauthorized. You can only edit your own article.",
       });
@@ -141,7 +148,7 @@ const deleteArticleById = async (req, res, next) => {
     const article = await ArticleModel.findById(req.params.id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    if (article.author.toString() !== req.user.userId) {
+    if (article.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         message: "Unauthorized. You can only delete your own article.",
       });
@@ -189,12 +196,14 @@ const addComment = async (req, res, next) => {
   }
 
   try {
-    const article = await ArticleModel.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const article = await findArticleOrThrow(req.params.id);
 
-    article.comments.push(value);
+    article.comments.push({
+      message: value.message,
+      user: req.user._id,
+    });
+
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
     res.status(201).json({ message: "Comment added", data: article });
@@ -211,11 +220,14 @@ const editComment = async (req, res, next) => {
   }
 
   try {
-    const article = await ArticleModel.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
 
-    const comment = article.comments.id(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    checkOwnership(
+      comment.user,
+      req.user._id,
+      "You can only edit your own comment"
+    );
 
     comment.message = value.message;
     await article.save();
@@ -231,11 +243,14 @@ const editComment = async (req, res, next) => {
 // DELETE COMMENT
 const deleteComment = async (req, res, next) => {
   try {
-    const article = await ArticleModel.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
 
-    const comment = article.comments.id(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    checkOwnership(
+      comment.user,
+      req.user._id,
+      "You can only delete your own comment"
+    );
 
     comment.deleteOne();
     await article.save();
@@ -251,20 +266,18 @@ const deleteComment = async (req, res, next) => {
 // LIKE COMMENT
 const likeComment = async (req, res, next) => {
   try {
-    const article = await ArticleModel.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
-
-    const comment = article.comments.id(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
 
     comment.likes += 1;
     await article.save();
 
     await deleteArticleCache(req.params.id);
 
-    res
-      .status(200)
-      .json({ message: "Comment liked", likes: comment.likes });
+    res.status(200).json({
+      message: "Comment liked",
+      likes: comment.likes,
+    });
   } catch (err) {
     next(err);
   }
@@ -278,18 +291,71 @@ const addReply = async (req, res, next) => {
   }
 
   try {
-    const article = await ArticleModel.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
 
-    const comment = article.comments.id(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    comment.replies.push({
+      message: value.message,
+      user: req.user._id,
+    });
 
-    comment.replies.push(value);
+    await article.save();
+    await deleteArticleCache(req.params.id);
+
+    res.status(201).json({ message: "Reply added", data: article });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Edit reply
+const editReply = async (req, res, next) => {
+  const { error, value } = editCommentSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  try {
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
+    const reply = findReplyOrThrow(comment, req.params.replyId);
+
+    checkOwnership(
+      reply.user,
+      req.user._id,
+      "You can only edit your own reply"
+    );
+
+    reply.message = value.message;
     await article.save();
 
     await deleteArticleCache(req.params.id);
 
-    res.status(201).json({ message: "Reply added", data: article });
+    res.status(200).json({ message: "Reply updated", data: article });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Delete reply
+const deleteReply = async (req, res, next) => {
+  try {
+    const article = await findArticleOrThrow(req.params.id);
+    const comment = findCommentOrThrow(article, req.params.commentId);
+    const reply = findReplyOrThrow(comment, req.params.replyId);
+
+    checkOwnership(
+      reply.user,
+      req.user._id,
+      "You can only delete your own reply"
+    );
+
+    reply.deleteOne();
+    await article.save();
+
+    await deleteArticleCache(req.params.id);
+
+    res.status(200).json({ message: "Reply deleted" });
   } catch (err) {
     next(err);
   }
@@ -307,4 +373,6 @@ module.exports = {
   deleteComment,
   likeComment,
   addReply,
+  editReply,
+  deleteReply,
 };

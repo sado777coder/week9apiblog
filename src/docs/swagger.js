@@ -16,18 +16,30 @@ const options = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
+        bearerAuth: { 
+          type: "http", 
+          scheme: "bearer", 
+          bearerFormat: "JWT" 
+        }
       }
     },
     security: [{ bearerAuth: [] }],
   },
 
-  // All Swagger docs files
+  // Points to all your Swagger documentation files
   apis: [
-    path.join(__dirname, "./*.docs.js"),
+    path.join(__dirname, "./*.docs.js"), // Example: articles.docs.js, comments.docs.js
   ],
 };
 
 const swaggerSpec = swaggerJsDoc(options);
 
-module.exports = { swaggerUi, swaggerSpec };
+/**
+ * Mount Swagger UI
+ * @param {Express.Application} app
+ */
+const setupSwagger = (app) => {
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+};
+
+module.exports = { swaggerUi, swaggerSpec, setupSwagger };

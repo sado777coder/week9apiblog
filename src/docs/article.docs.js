@@ -28,8 +28,6 @@
  *           format: date-time
  *         updatedAt:
  *           type: string
- *           format: date-time
- *
  *     Comment:
  *       type: object
  *       required:
@@ -37,16 +35,15 @@
  *       properties:
  *         id:
  *           type: string
- *         username:
+ *         user:
  *           type: string
  *         message:
  *           type: string
  *         likes:
- *           type: number
+ *           type: integer
  *         createdAt:
  *           type: string
  *           format: date-time
- *
  *     Reply:
  *       type: object
  *       required:
@@ -54,7 +51,7 @@
  *       properties:
  *         id:
  *           type: string
- *         username:
+ *         user:
  *           type: string
  *         message:
  *           type: string
@@ -62,8 +59,6 @@
  *           type: string
  *           format: date-time
  */
-
-// ARTICLES ROUTES DOCS 
 
 /**
  * @swagger
@@ -82,26 +77,31 @@
  *     responses:
  *       201:
  *         description: Article created successfully
- */
-
-/**
- * @swagger
- * /api/articles:
+ *
  *   get:
  *     summary: Get all articles
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: List of all articles
+ *         description: List of articles
  */
 
 /**
  * @swagger
  * /api/articles/search:
  *   get:
- *     summary: Search articles by title or content
+ *     summary: Search articles by keyword
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -133,11 +133,7 @@
  *     responses:
  *       200:
  *         description: Article found
- */
-
-/**
- * @swagger
- * /api/articles/{id}:
+ *
  *   put:
  *     summary: Update an article by ID
  *     tags: [Articles]
@@ -156,11 +152,7 @@
  *     responses:
  *       200:
  *         description: Article updated successfully
- */
-
-/**
- * @swagger
- * /api/articles/{id}:
+ *
  *   delete:
  *     summary: Delete an article by ID
  *     tags: [Articles]
@@ -174,8 +166,6 @@
  *       200:
  *         description: Article deleted
  */
-
-// COMMENTS ROUTES DOCS 
 
 /**
  * @swagger
@@ -215,14 +205,16 @@
  *       - in: path
  *         name: commentId
  *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Comment'
  *     responses:
  *       200:
  *         description: Comment updated
- */
-
-/**
- * @swagger
- * /api/articles/{id}/comments/{commentId}:
+ *
  *   delete:
  *     summary: Delete a comment
  *     tags: [Articles]
@@ -260,8 +252,6 @@
  *         description: Comment liked
  */
 
-// REPLIES ROUTES DOCS 
-
 /**
  * @swagger
  * /api/articles/{id}/comments/{commentId}/replies:
@@ -285,4 +275,49 @@
  *             $ref: '#/components/schemas/Reply'
  *     responses:
  *       201:
- *         description: Reply added*/
+ *         description: Reply added
+ *
+ *   put:
+ *     summary: Edit a reply
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *       - in: path
+ *         name: replyId
+ *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Reply'
+ *     responses:
+ *       200:
+ *         description: Reply updated
+ *
+ *   delete:
+ *     summary: Delete a reply
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *       - in: path
+ *         name: replyId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Reply deleted
+ */

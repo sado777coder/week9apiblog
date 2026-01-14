@@ -12,7 +12,9 @@ const {
   editComment,
   deleteComment,
   likeComment,
-  addReply
+  addReply,
+  editReply,
+  deleteReply,
 } = require("../controllers/article.controller");
 
 const router = express.Router();
@@ -20,7 +22,7 @@ router.use(requireAuth);
 
 //ARTICLE ROUTES
 router.post("/articles", postArticle);
-router.get("/articles", requireAuth, getAllArticle);
+router.get("/articles", getAllArticle);
 router.get("/articles/search", searchArticle);
 router.get("/articles/:id", getArticleById);
 router.put("/articles/:id", updateArticleById);

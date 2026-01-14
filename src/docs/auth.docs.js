@@ -22,7 +22,6 @@
  *           type: string
  *         password:
  *           type: string
- *
  *     LoginUser:
  *       type: object
  *       required:
@@ -35,7 +34,6 @@
  *           type: string
  */
 
-/* ===== REGISTER ===== */
 /**
  * @swagger
  * /api/auth/register:
@@ -53,7 +51,6 @@
  *         description: User registered successfully
  */
 
-/* ===== LOGIN ===== */
 /**
  * @swagger
  * /api/auth/login:

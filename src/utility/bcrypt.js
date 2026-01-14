@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const hashPassowrd = async (password) => {
   const salt = await bcrypt.genSalt(12);
   const hash = await bcrypt.hash(password, salt);
-  return hash; // was "hashed" typo in your snippet
+  return hash; 
 };
 
 // Generate JWT
