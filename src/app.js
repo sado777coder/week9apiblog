@@ -10,7 +10,7 @@ const rateLimiter = require("./middlewares/rateLimiter");
 const app = express();
 
 app.use(express.json());
-app.use(rateLimiter);
+//app.use(rateLimiter);
 app.use(cors("*"));
 app.use(requestLoger);
 
