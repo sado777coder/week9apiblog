@@ -1,143 +1,213 @@
-URL = https://week9apiblog.onrender.com
+Week 9 Blog API
 
+A fully-featured RESTful Blog API built with Node.js, Express, MongoDB, JWT authentication, Redis caching, and documented using Swagger.
+This API supports user authentication, article management, comments, replies, likes, search, and caching for performance.
 
-A full-featured blog API built with Node.js, Express, and MongoDB.
-This API supports user authentication, article management, search, comments, reply threads, and likes on comments.
+ Features
+ Authentication & Authorization
 
-Features:
-
- User Features:
- 
-User registration
-
-User login
+User registration and login
 
 JWT-based authentication
 
-Protected routes :
+Secure protected routes
 
-Article Features :
+Logout with Redis token blacklisting
 
-Create articles
+Authorization checks (users can only edit/delete their own content)
 
-Read all articles
+Articles
 
-Read a single article
+Create, read, update, delete (CRUD) articles
 
-Update articles (only by author)
+Pagination for articles list
 
-Delete articles (only by author)
+Redis caching for:
 
-Search articles by keywords
+All articles
 
-Comment & Reply Features :
+Single article
 
-Add comments to an article
+Cache invalidation on create/update/delete
 
-Edit comments
+Search articles by keyword
 
-Delete comments
+💬 Comments & Replies
+
+Add comments to articles
+
+Edit & delete comments (owner only)
 
 Like comments
 
-Reply to comments (nested replies)
+Add replies to comments
 
-Technologies Used :
+Edit & delete replies (owner only)
 
-Node.js
+Nested comments & replies structure
 
-Express.js
+User identity derived securely from JWT (no username in payload)
 
-MongoDB / Mongoose
+⚡ Performance & Reliability
 
-JSON Web Token (JWT)
+Redis caching for faster reads
 
-Joi Validation
+Graceful Redis failure handling (server does not crash)
 
-Custom Middlewares
+Clean validation using Joi
 
-CORS
+Centralized error handling
 
-Authentication Routes (Public):
+ Tech Stack
 
+Backend: Node.js, Express.js
+
+Database: MongoDB (Mongoose)
+
+Authentication: JWT
+
+Caching: Redis (ioredis)
+
+Validation: Joi
+
+Documentation: Swagger (OpenAPI)
+
+Testing: Postman
+
+Deployment: Render
+
+ Project Structure
+week9BlogApi/
+├── controllers/
+│   ├── article.controller.js
+│   └── user.controller.js
+├── models/
+│   ├── article.model.js
+│   └── user.model.js
+├── routes/
+│   ├── article.routes.js
+│   └── user.routes.js
+├── middleware/
+│   └── auth.middleware.js
+├── validators/
+│   └── post.validation.js
+├── utility/
+│   ├── article.redis.js
+│   └── bcrypt.js
+├── config/
+│   └── redis.js
+├── helpers/
+│   └── article.helpers.js
+├── app.js
+├── server.js
+└── README.md
+
+ Authentication Flow
+
+Register or login
+
+Receive JWT token
+
+Pass token in headers:
+
+Authorization: Bearer <your_token>
+
+
+Token is verified on protected routes
+
+Logout blacklists token using Redis
+
+ API Documentation
+🔹 Swagger (Live)
+
+Use Swagger to explore and test endpoints:
+
+Swagger JSON
+
+https://week9apiblog-1.onrender.com/api-docs-json
+
+ Postman Collection
+
+All endpoints have been tested and documented in Postman.
+
+ Postman Workspace
+
+https://sado777coder-4419533.postman.co/workspace/Amos-Sottie's-Workspace~bfa808a6-e923-4217-869b-5243d41693eb/folder/49418763-8aa70ae2-22a7-4450-9ba3-ac54f0f23101?action=share&source=copy-link&creator=49418763&ctx=documentation
+
+
+Test users have already been created and verified.
+
+ Search Articles
+
+Search articles using keywords in title, content, or subheading:
+
+GET /api/articles/search?q=backend
+
+
+MongoDB text index is used for efficient searching.
+
+ Example Endpoints
+Register
 POST /api/user/sign-up
 
-Create a new user account
-
+Login
 POST /api/user/login
 
-Login and receive a JWT token.
+Create Article
+POST /api/articles
 
-Article Routes (Protected):
+Get All Articles (Cached)
+GET /api/articles?page=1&limit=10
 
-METHOD	ENDPOINT	DESCRIPTION:
+Get Single Article (Cached)
+GET /api/articles/:id
 
-Create new article
+Add Comment
+POST /api/articles/:id/comments
 
-POST	/api/articles	
+Edit Comment
+PUT /api/articles/:id/comments/:commentId
 
-Get all articles
+Add Reply
+POST /api/articles/:id/comments/:commentId/replies
 
-GET	/api/articles	
+Like Comment
+POST /api/articles/:id/comments/:commentId/like
 
-Search articles
+ Environment Variables
 
-GET	/api/articles/search	
+Create a .env file:
 
-Get article by ID
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+REDIS_URL=your_redis_url
 
-GET	/api/articles/:id	
+Run Locally
+npm install
+npm run dev
 
-Update article
 
-PUT	/api/articles/:id	
+Server will start on:
 
-Delete article
+http://localhost:5000
 
-DELETE	/api/articles/:id	
+ Status
 
-Comment Routes (Protected):
+ Authentication working
 
-METHOD	ENDPOINT	DESCRIPTION :
+Comments & replies fixed
 
-Add comment
+Redis caching stable
 
-POST	/api/articles/:id/comments	
+ Search enabled
 
-Edit comment
+ Postman & Swagger documented
 
-PUT	/api/articles/:id/comments/:commentId	
+ Deployed and tested
 
-Delete comment
+ Author
 
-DELETE	/api/articles/:id/comments/:commentId	
-
-Like a comment
-
-POST	/api/articles/:id/comments/:commentId/like	
-
-Reply Routes (Protected) :
-
-METHOD	ENDPOINT	DESCRIPTION :
-
-Add reply to a comment
-
-POST	/api/articles/:id/comments/:commentId/replies	
-
-Error Handling
-
-The API includes a global error handler that catches:
-Invalid routes
-
-Validation errors
-
-Authentication errors
-
-Database issues
-
-Contributing
-
-Pull requests and suggestions are welcome.
-
- License
-This project is open-source and free to use.
+Amos Ofori Sottie
+Backend Developer
+GitHub: https://github.com/sado777coder
