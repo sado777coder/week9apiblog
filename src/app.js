@@ -15,8 +15,9 @@ app.use(cors("*"));
 app.use(requestLoger);
 
 // Routes
-app.use("/api", ArticleRoutes);
 app.use("/api/user", userRoute);
+app.use("/api", ArticleRoutes);
+
 
 // Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
