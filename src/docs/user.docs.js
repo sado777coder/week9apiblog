@@ -36,7 +36,7 @@
 
 /**
  * @swagger
- * /api/auth/register:
+ * /api/user/sign-up:
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
@@ -53,7 +53,7 @@
 
 /**
  * @swagger
- * /api/auth/login:
+ * /api/user/login:
  *   post:
  *     summary: Login user
  *     tags: [Auth]

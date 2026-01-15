@@ -21,7 +21,7 @@
  *           type: string
  *         content:
  *           type: string
- *         authorId:
+ *         author:
  *           type: string
  *         createdAt:
  *           type: string
@@ -76,7 +76,7 @@
  *             $ref: '#/components/schemas/Article'
  *     responses:
  *       201:
- *         description: Article created successfully
+ *         description: Article created
  *
  *   get:
  *     summary: Get all articles
@@ -101,7 +101,7 @@
  * @swagger
  * /api/articles/search:
  *   get:
- *     summary: Search articles by keyword
+ *     summary: Search articles
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -128,14 +128,12 @@
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Article found
  *
  *   put:
- *     summary: Update an article by ID
+ *     summary: Update an article
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -151,10 +149,10 @@
  *             $ref: '#/components/schemas/Article'
  *     responses:
  *       200:
- *         description: Article updated successfully
+ *         description: Article updated
  *
  *   delete:
- *     summary: Delete an article by ID
+ *     summary: Delete an article
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -171,7 +169,7 @@
  * @swagger
  * /api/articles/{id}/comments:
  *   post:
- *     summary: Add a comment to an article
+ *     summary: Add a comment
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -194,7 +192,7 @@
  * @swagger
  * /api/articles/{id}/comments/{commentId}:
  *   put:
- *     summary: Edit a comment
+ *     summary: Edit comment
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -216,7 +214,7 @@
  *         description: Comment updated
  *
  *   delete:
- *     summary: Delete a comment
+ *     summary: Delete comment
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []
@@ -256,7 +254,7 @@
  * @swagger
  * /api/articles/{id}/comments/{commentId}/replies:
  *   post:
- *     summary: Add a reply to a comment
+ *     summary: Add a reply
  *     tags: [Articles]
  *     security:
  *       - bearerAuth: []

@@ -16,19 +16,18 @@ const options = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: { 
-          type: "http", 
-          scheme: "bearer", 
-          bearerFormat: "JWT" 
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT"
         }
       }
     },
-    security: [{ bearerAuth: [] }],
+    // ✅ Remove global security
+    security: [], 
   },
-
-  // Points to all your Swagger documentation files
   apis: [
-    path.join(__dirname, "./*.docs.js"), // Example: articles.docs.js, comments.docs.js
+    path.join(__dirname, "./*.docs.js"), // points to your route docs
   ],
 };
 
