@@ -16,7 +16,6 @@ const updateArticleSchema = Joi.object({
 
 // COMMENT / REPLY
 const commentSchema = Joi.object({
-  username: Joi.string().min(2).required(),
   message: Joi.string().min(1).required(),
 });
 
