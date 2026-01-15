@@ -15,7 +15,6 @@ const server = app.listen(PORT, () => {
 (async () => {
   try {
     await connectDB();
-    console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
   }
