@@ -48,7 +48,7 @@ Nested comments & replies structure
 
 User identity derived securely from JWT (no username in payload)
 
-⚡ Performance & Reliability
+ Performance & Reliability
 
 Redis caching for faster reads
 
