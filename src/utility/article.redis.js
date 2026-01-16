@@ -3,8 +3,8 @@ const redisClient = require("../config/redis");
 // Clear paginated articles cache
 const clearArticlesCache = async () => {
   const keys = await redisClient.keys("articles:*");
-  if (keys.length) {
-    await redisClient.del(keys);
+  if (keys.length > 0) {
+    await redisClient.del(...keys);
   }
 };
 
@@ -14,9 +14,14 @@ const getArticlesCache = async (key) => {
   return cached ? JSON.parse(cached) : null;
 };
 
-// Set paginated articles cache
+// Set paginated articles cache (ioredis FIX)
 const setArticlesCache = async (key, data, ttl = 60) => {
-  await redisClient.setEx(key, ttl, JSON.stringify(data));
+  await redisClient.set(
+    key,
+    JSON.stringify(data),
+    "EX",
+    ttl
+  );
 };
 
 // Get single article cache
@@ -25,9 +30,14 @@ const getArticleCache = async (id) => {
   return cached ? JSON.parse(cached) : null;
 };
 
-// Set single article cache
+// Set single article cache (ioredis FIX)
 const setArticleCache = async (id, data, ttl = 60) => {
-  await redisClient.setEx(`article:${id}`, ttl, JSON.stringify(data));
+  await redisClient.set(
+    `article:${id}`,
+    JSON.stringify(data),
+    "EX",
+    ttl
+  );
 };
 
 // Delete single article cache
