@@ -74,7 +74,13 @@ const logoutUser = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    await redisClient.setEx(token, 7 * 24 * 60 * 60, "blacklisted");
+    // ioredis-compatible
+    await redisClient.set(
+      token,
+      "blacklisted",
+      "EX",
+      7 * 24 * 60 * 60
+    );
 
     return res.status(200).json({
       message: "Logged out successfully",
