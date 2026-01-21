@@ -1,10 +1,18 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+
+// Always points to project root on Render & locally
+const uploadDir = path.join(process.cwd(), "uploads");
+
+// Ensure uploads folder exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Absolute path to /uploads (project root)
-    cb(null, path.join(__dirname, "../../uploads"));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueName =
