@@ -6,11 +6,11 @@ const replySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
-    required: true
+    required: true,
   },
 
   createdAt: { type: Date, default: Date.now },
-  likes: { type: Number, default: 0 }
+  likes: { type: Number, default: 0 },
 });
 
 const commentSchema = new mongoose.Schema({
@@ -19,12 +19,12 @@ const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
-    required: true
+    required: true,
   },
 
   createdAt: { type: Date, default: Date.now },
   likes: { type: Number, default: 0 },
-  replies: [replySchema]
+  replies: [replySchema],
 });
 
 const articleSchema = new mongoose.Schema(
@@ -32,14 +32,19 @@ const articleSchema = new mongoose.Schema(
     title: { type: String, required: true },
     content: { type: String, required: true },
 
+    //  ADD THIS
+    coverImage: {
+      type: String,
+    },
+
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
-      required: true
+      required: true,
     },
 
     subheading: String,
-    comments: [commentSchema]
+    comments: [commentSchema],
   },
   { timestamps: true }
 );

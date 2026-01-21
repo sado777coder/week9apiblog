@@ -33,6 +33,9 @@ const postArticle = async (req, res, next) => {
     const newArticle = await ArticleModel.create({
       ...value,
       author: req.user._id,
+
+      //  ADD THIS
+      coverImage: req.file ? `/uploads/${req.file.filename}` : null,
     });
 
     await clearArticlesCache();

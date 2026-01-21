@@ -1,5 +1,6 @@
 const express = require("express");
 const requireAuth = require("../middlewares/requireAuth");
+const upload = require("../middlewares/upload");
 
 const {
   postArticle,
@@ -24,7 +25,12 @@ router.get("/articles/search", searchArticle);
 router.get("/articles/:id", getArticleById);
 
 // Protected routes
-router.post("/articles", requireAuth, postArticle);
+router.post(
+  "/articles",
+  requireAuth,
+  upload.single("coverImage"), //  MULTER
+  postArticle
+);
 router.put("/articles/:id", requireAuth, updateArticleById);
 router.delete("/articles/:id", requireAuth, deleteArticleById);
 

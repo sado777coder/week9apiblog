@@ -6,6 +6,7 @@ const ArticleRoutes = require("./routes/article.route.js");
 const userRoute = require("./routes/user.route.js");
 const { swaggerUi, swaggerSpec } = require("./docs/swagger");
 const rateLimiter = require("./middlewares/rateLimiter");
+const path = require("path");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(requestLoger);
 // Routes
 app.use("/api/user", userRoute);
 app.use("/api", ArticleRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 // Swagger UI
