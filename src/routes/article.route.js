@@ -25,9 +25,7 @@ router.get("/articles/search", searchArticle);
 router.get("/articles/:id", getArticleById);
 
 // Protected routes
-router.post(
-  "/articles",
-  requireAuth,
+router.post("/articles",requireAuth,
   upload.single("coverImage"), //  MULTER
   postArticle
 );

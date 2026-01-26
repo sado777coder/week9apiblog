@@ -21,6 +21,7 @@ const {
   findReplyOrThrow,
   checkOwnership,
 } = require("../helpers/article.helpers");
+const { addNotificationJob } = require("../queues/notification.queue");
 
 // CREATE ARTICLE
 const postArticle = async (req, res, next) => {
@@ -209,7 +210,19 @@ const addComment = async (req, res, next) => {
     await article.save();
     await deleteArticleCache(req.params.id);
 
-    res.status(201).json({ message: "Comment added", data: article });
+    //  ADD NOTIFICATION JOB (ASYNC)
+    await addNotificationJob({
+      type: "COMMENT_ADDED",
+      articleId: article._id,
+      articleAuthor: article.author,
+      commentBy: req.user._id,
+      message: "New comment on your article",
+    });
+
+    res.status(201).json({
+      message: "Comment added",
+      data: article,
+    });
   } catch (err) {
     next(err);
   }
@@ -277,6 +290,15 @@ const likeComment = async (req, res, next) => {
 
     await deleteArticleCache(req.params.id);
 
+    // Like notification
+    await addNotificationJob({
+  type: "COMMENT_LIKED",
+  articleId: article._id,
+  articleAuthor: article.author,
+  commentBy: req.user._id,
+  message: "Someone liked your comment",
+});
+
     res.status(200).json({
       message: "Comment liked",
       likes: comment.likes,
@@ -304,6 +326,15 @@ const addReply = async (req, res, next) => {
 
     await article.save();
     await deleteArticleCache(req.params.id);
+
+    // Reply notification
+    await addNotificationJob({
+  type: "REPLY_ADDED",
+  articleId: article._id,
+  articleAuthor: article.author,
+  commentBy: req.user._id,
+  message: "New reply on your comment",
+});
 
     res.status(201).json({ message: "Reply added", data: article });
   } catch (err) {
