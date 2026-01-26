@@ -1,6 +1,6 @@
 const express = require("express");
-const requireAuth = require("../middlewares/requireAuth");
 const upload = require("../middlewares/upload");
+const requireAuth = require("../middlewares/requireAuth");
 
 const {
   postArticle,

@@ -5,13 +5,12 @@ const errorHandler = require("./middlewares/errorHandler.js");
 const ArticleRoutes = require("./routes/article.route.js");
 const userRoute = require("./routes/user.route.js");
 const { swaggerUi, swaggerSpec } = require("./docs/swagger");
-const rateLimiter = require("./middlewares/rateLimiter");
+const notificationRoutes = require("./routes/notification.routes");
 const path = require("path");
 
 const app = express();
 
 app.use(express.json());
-//app.use(rateLimiter);
 app.use(cors("*"));
 app.use(requestLoger);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -20,11 +19,11 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/user", userRoute);
 app.use("/api", ArticleRoutes);
 
+// Correct route
+app.use("/api/notifications", notificationRoutes);
 
-// Swagger UI
+// Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Swagger JSON
 app.get("/api-docs-json", (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);

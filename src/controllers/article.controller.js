@@ -21,9 +21,12 @@ const {
   findReplyOrThrow,
   checkOwnership,
 } = require("../helpers/article.helpers");
+
 const { addNotificationJob } = require("../queues/notification.queue");
 
-// CREATE ARTICLE
+/* =========================
+   CREATE ARTICLE
+========================= */
 const postArticle = async (req, res, next) => {
   const { error, value } = createArticleSchema.validate(req.body);
   if (error) {
@@ -34,14 +37,12 @@ const postArticle = async (req, res, next) => {
     const newArticle = await ArticleModel.create({
       ...value,
       author: req.user._id,
-
-      //  ADD THIS
       coverImage: req.file ? `/uploads/${req.file.filename}` : null,
     });
 
     await clearArticlesCache();
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Article created",
       data: newArticle,
     });
@@ -50,30 +51,32 @@ const postArticle = async (req, res, next) => {
   }
 };
 
-// GET ALL ARTICLES (CACHED)
+/* =========================
+   GET ALL ARTICLES (CACHED)
+========================= */
 const getAllArticle = async (req, res, next) => {
   const { limit = 10, page = 1 } = req.query;
   const skip = (page - 1) * limit;
   const cacheKey = `articles:page=${page}:limit=${limit}`;
 
   try {
-    const cachedArticles = await getArticlesCache(cacheKey);
-    if (cachedArticles) {
+    const cached = await getArticlesCache(cacheKey);
+    if (cached) {
       return res.status(200).json({
         message: "Articles fetched (cache)",
-        data: cachedArticles,
+        data: cached,
       });
     }
 
     const articles = await ArticleModel.find({})
-      .populate("author", "name _id email")
+      .populate("author", "name email")
       .sort({ createdAt: -1 })
       .limit(Number(limit))
       .skip(Number(skip));
 
     await setArticlesCache(cacheKey, articles);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Articles fetched (database)",
       data: articles,
     });
@@ -82,27 +85,27 @@ const getAllArticle = async (req, res, next) => {
   }
 };
 
-// GET SINGLE ARTICLE (CACHED)
+/* =========================
+   GET SINGLE ARTICLE (CACHED)
+========================= */
 const getArticleById = async (req, res, next) => {
   try {
-    const cachedArticle = await getArticleCache(req.params.id);
-    if (cachedArticle) {
+    const cached = await getArticleCache(req.params.id);
+    if (cached) {
       return res.status(200).json({
         message: "Article found (cache)",
-        data: cachedArticle,
+        data: cached,
       });
     }
 
     const article = await ArticleModel.findById(req.params.id);
     if (!article) {
-      return res.status(404).json({
-        message: `Article with ID ${req.params.id} not found`,
-      });
+      return res.status(404).json({ message: "Article not found" });
     }
 
     await setArticleCache(req.params.id, article);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Article found (database)",
       data: article,
     });
@@ -111,7 +114,9 @@ const getArticleById = async (req, res, next) => {
   }
 };
 
-// UPDATE ARTICLE
+/* =========================
+   UPDATE ARTICLE
+========================= */
 const updateArticleById = async (req, res, next) => {
   const { error, value } = updateArticleSchema.validate(req.body);
   if (error) {
@@ -122,11 +127,11 @@ const updateArticleById = async (req, res, next) => {
     const article = await ArticleModel.findById(req.params.id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    if (article.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "Unauthorized. You can only edit your own article.",
-      });
-    }
+    checkOwnership(
+      article.author,
+      req.user._id,
+      "You can only edit your own article"
+    );
 
     const updated = await ArticleModel.findByIdAndUpdate(
       req.params.id,
@@ -137,7 +142,7 @@ const updateArticleById = async (req, res, next) => {
     await deleteArticleCache(req.params.id);
     await clearArticlesCache();
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Article updated",
       data: updated,
     });
@@ -146,44 +151,46 @@ const updateArticleById = async (req, res, next) => {
   }
 };
 
-// DELETE ARTICLE
+/* =========================
+   DELETE ARTICLE
+========================= */
 const deleteArticleById = async (req, res, next) => {
   try {
     const article = await ArticleModel.findById(req.params.id);
     if (!article) return res.status(404).json({ message: "Article not found" });
 
-    if (article.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "Unauthorized. You can only delete your own article.",
-      });
-    }
+    checkOwnership(
+      article.author,
+      req.user._id,
+      "You can only delete your own article"
+    );
 
     await article.deleteOne();
-
     await deleteArticleCache(req.params.id);
     await clearArticlesCache();
 
-    return res.status(200).json({ message: "Article deleted" });
+    res.status(200).json({ message: "Article deleted" });
   } catch (err) {
     next(err);
   }
 };
 
-// SEARCH ARTICLES
+/* =========================
+   SEARCH ARTICLES
+========================= */
 const searchArticle = async (req, res, next) => {
   try {
-    const keyword = req.query.q;
-    if (!keyword) {
+    if (!req.query.q) {
       return res.status(400).json({
         message: "Search query ?q=keyword is required",
       });
     }
 
     const results = await ArticleModel.find({
-      $text: { $search: keyword },
+      $text: { $search: req.query.q },
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Search results",
       data: results,
     });
@@ -192,7 +199,9 @@ const searchArticle = async (req, res, next) => {
   }
 };
 
-// ADD COMMENT
+/* =========================
+   ADD COMMENT + NOTIFICATION
+========================= */
 const addComment = async (req, res, next) => {
   const { error, value } = commentSchema.validate(req.body);
   if (error) {
@@ -210,14 +219,15 @@ const addComment = async (req, res, next) => {
     await article.save();
     await deleteArticleCache(req.params.id);
 
-    //  ADD NOTIFICATION JOB (ASYNC)
-    await addNotificationJob({
-      type: "COMMENT_ADDED",
-      articleId: article._id,
-      articleAuthor: article.author,
-      commentBy: req.user._id,
-      message: "New comment on your article",
-    });
+    if (article.author.toString() !== req.user._id.toString()) {
+      await addNotificationJob({
+        userId: article.author,
+        type: "COMMENT_ADDED",
+        articleId: article._id,
+        commentBy: req.user._id,
+        message: "New comment on your article",
+      });
+    }
 
     res.status(201).json({
       message: "Comment added",
@@ -228,7 +238,9 @@ const addComment = async (req, res, next) => {
   }
 };
 
-// EDIT COMMENT
+/* =========================
+   EDIT COMMENT
+========================= */
 const editComment = async (req, res, next) => {
   const { error, value } = editCommentSchema.validate(req.body);
   if (error) {
@@ -247,7 +259,6 @@ const editComment = async (req, res, next) => {
 
     comment.message = value.message;
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Comment updated", data: article });
@@ -256,7 +267,9 @@ const editComment = async (req, res, next) => {
   }
 };
 
-// DELETE COMMENT
+/* =========================
+   DELETE COMMENT
+========================= */
 const deleteComment = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
@@ -270,7 +283,6 @@ const deleteComment = async (req, res, next) => {
 
     comment.deleteOne();
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Comment deleted" });
@@ -279,7 +291,9 @@ const deleteComment = async (req, res, next) => {
   }
 };
 
-// LIKE COMMENT
+/* =========================
+   LIKE COMMENT + NOTIFICATION
+========================= */
 const likeComment = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
@@ -287,17 +301,15 @@ const likeComment = async (req, res, next) => {
 
     comment.likes += 1;
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
-    // Like notification
     await addNotificationJob({
-  type: "COMMENT_LIKED",
-  articleId: article._id,
-  articleAuthor: article.author,
-  commentBy: req.user._id,
-  message: "Someone liked your comment",
-});
+      userId: article.author,
+      type: "COMMENT_LIKED",
+      articleId: article._id,
+      commentBy: req.user._id,
+      message: "Someone liked your comment",
+    });
 
     res.status(200).json({
       message: "Comment liked",
@@ -308,7 +320,9 @@ const likeComment = async (req, res, next) => {
   }
 };
 
-// ADD REPLY
+/* =========================
+   ADD REPLY + NOTIFICATION
+========================= */
 const addReply = async (req, res, next) => {
   const { error, value } = commentSchema.validate(req.body);
   if (error) {
@@ -327,14 +341,13 @@ const addReply = async (req, res, next) => {
     await article.save();
     await deleteArticleCache(req.params.id);
 
-    // Reply notification
     await addNotificationJob({
-  type: "REPLY_ADDED",
-  articleId: article._id,
-  articleAuthor: article.author,
-  commentBy: req.user._id,
-  message: "New reply on your comment",
-});
+      userId: article.author,
+      type: "REPLY_ADDED",
+      articleId: article._id,
+      commentBy: req.user._id,
+      message: "New reply on your comment",
+    });
 
     res.status(201).json({ message: "Reply added", data: article });
   } catch (err) {
@@ -342,7 +355,9 @@ const addReply = async (req, res, next) => {
   }
 };
 
-// Edit reply
+/* =========================
+   EDIT REPLY
+========================= */
 const editReply = async (req, res, next) => {
   const { error, value } = editCommentSchema.validate(req.body);
   if (error) {
@@ -362,7 +377,6 @@ const editReply = async (req, res, next) => {
 
     reply.message = value.message;
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Reply updated", data: article });
@@ -371,7 +385,9 @@ const editReply = async (req, res, next) => {
   }
 };
 
-// Delete reply
+/* =========================
+   DELETE REPLY
+========================= */
 const deleteReply = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
@@ -386,7 +402,6 @@ const deleteReply = async (req, res, next) => {
 
     reply.deleteOne();
     await article.save();
-
     await deleteArticleCache(req.params.id);
 
     res.status(200).json({ message: "Reply deleted" });
