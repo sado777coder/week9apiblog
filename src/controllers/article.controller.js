@@ -24,9 +24,9 @@ const {
 
 const { addNotificationJob } = require("../queues/notification.queue");
 
-/* =========================
-   CREATE ARTICLE
-========================= */
+
+  // CREATE ARTICLE
+
 const postArticle = async (req, res, next) => {
   const { error, value } = createArticleSchema.validate(req.body);
   if (error) {
@@ -51,9 +51,9 @@ const postArticle = async (req, res, next) => {
   }
 };
 
-/* =========================
-   GET ALL ARTICLES (CACHED)
-========================= */
+
+  // GET ALL ARTICLES (CACHED)
+
 const getAllArticle = async (req, res, next) => {
   const { limit = 10, page = 1 } = req.query;
   const skip = (page - 1) * limit;
@@ -85,9 +85,9 @@ const getAllArticle = async (req, res, next) => {
   }
 };
 
-/* =========================
-   GET SINGLE ARTICLE (CACHED)
-========================= */
+
+  // GET SINGLE ARTICLE (CACHED)
+
 const getArticleById = async (req, res, next) => {
   try {
     const cached = await getArticleCache(req.params.id);
@@ -114,9 +114,9 @@ const getArticleById = async (req, res, next) => {
   }
 };
 
-/* =========================
-   UPDATE ARTICLE
-========================= */
+
+  // UPDATE ARTICLE
+
 const updateArticleById = async (req, res, next) => {
   const { error, value } = updateArticleSchema.validate(req.body);
   if (error) {
@@ -151,9 +151,9 @@ const updateArticleById = async (req, res, next) => {
   }
 };
 
-/* =========================
-   DELETE ARTICLE
-========================= */
+
+  // DELETE ARTICLE
+
 const deleteArticleById = async (req, res, next) => {
   try {
     const article = await ArticleModel.findById(req.params.id);
@@ -175,9 +175,9 @@ const deleteArticleById = async (req, res, next) => {
   }
 };
 
-/* =========================
-   SEARCH ARTICLES
-========================= */
+
+  // SEARCH ARTICLES
+
 const searchArticle = async (req, res, next) => {
   try {
     if (!req.query.q) {
@@ -199,9 +199,9 @@ const searchArticle = async (req, res, next) => {
   }
 };
 
-/* =========================
-   ADD COMMENT + NOTIFICATION
-========================= */
+
+   //ADD COMMENT + NOTIFICATION
+
 const addComment = async (req, res, next) => {
   const { error, value } = commentSchema.validate(req.body);
   if (error) {
@@ -238,9 +238,9 @@ const addComment = async (req, res, next) => {
   }
 };
 
-/* =========================
-   EDIT COMMENT
-========================= */
+
+  // EDIT COMMENT
+
 const editComment = async (req, res, next) => {
   const { error, value } = editCommentSchema.validate(req.body);
   if (error) {
@@ -267,9 +267,9 @@ const editComment = async (req, res, next) => {
   }
 };
 
-/* =========================
-   DELETE COMMENT
-========================= */
+
+  // DELETE COMMENT
+
 const deleteComment = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
@@ -291,9 +291,9 @@ const deleteComment = async (req, res, next) => {
   }
 };
 
-/* =========================
-   LIKE COMMENT + NOTIFICATION
-========================= */
+
+  // LIKE COMMENT + NOTIFICATION
+
 const likeComment = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
@@ -320,9 +320,9 @@ const likeComment = async (req, res, next) => {
   }
 };
 
-/* =========================
-   ADD REPLY + NOTIFICATION
-========================= */
+
+//ADD REPLY + NOTIFICATION
+
 const addReply = async (req, res, next) => {
   const { error, value } = commentSchema.validate(req.body);
   if (error) {
@@ -355,9 +355,9 @@ const addReply = async (req, res, next) => {
   }
 };
 
-/* =========================
-   EDIT REPLY
-========================= */
+
+  // EDIT REPLY
+
 const editReply = async (req, res, next) => {
   const { error, value } = editCommentSchema.validate(req.body);
   if (error) {
@@ -385,9 +385,9 @@ const editReply = async (req, res, next) => {
   }
 };
 
-/* =========================
-   DELETE REPLY
-========================= */
+
+ //  DELETE REPLY
+
 const deleteReply = async (req, res, next) => {
   try {
     const article = await findArticleOrThrow(req.params.id);
